@@ -19,8 +19,8 @@ def choose_method(select_request):
         first_name = (input('Введите имя клиента для изменения: '))
         last_name = (input('Введите фамилию клиента для изменения: '))
         email = (input('Введите email клиента для изменения: '))
-        cur.execute("SELECT id, first_name, last_name, email from сlient")
 
+        cur.execute("SELECT id, first_name, last_name, email from сlient")
         rows = cur.fetchall()
         print(rows)
         for row in rows:
@@ -41,7 +41,6 @@ def choose_method(select_request):
                 change_client(conn, data_сlient, first_name, row[2], row[3]);
             else:
                 change_client(conn, data_сlient, row[1], row[2], row[3]);
-
 
     elif int(select_request) == 3:
         data_сlient = (input('Введите id клиента: '))
@@ -68,14 +67,18 @@ def choose_method(select_request):
         first_name = (input('Введите имя клиента для его поиска: '))
         last_name = (input('Введите фамилию клиента для его поиска: '))
         email = (input('Введите email клиента для его поиска: '))
-
-        if first_name or last_name or email:
+        phone_cl = (input('Введите телефон клиента: '))
+        if first_name or last_name or email or phone_cl:
             cur.execute("SELECT id, first_name, last_name, email from сlient")
-
             rows = cur.fetchall()
             for row in rows:
                 if first_name == row[1] or last_name == row[2] or email == row[3]:
                     print(row)
+            cur.execute("SELECT id, client_id, phone from telefone_сlient")
+            phones = cur.fetchall()
+            for phone in phones:
+                if phone_cl == phone[2].replace(' ', ''):
+                    print(phone_cl)
 
 
 def create_db(conn):
@@ -158,8 +161,10 @@ def delete_client(conn, client_id):
 
 def find_client(conn, first_name=None, last_name=None, email=None, phone=None):
     cur.execute(
-        'SELECT id, first_name, last_name, email FROM сlient WHERE id=%s;',
-        (first_name, last_name, email)
+        '''SELECT c.client_id FROM сlient as c
+           JOIN telefone_сlient as t on c.id = t.client_id;
+           WHERE id=%s;''',
+        (first_name, last_name, email, phone)
     )
 
 
