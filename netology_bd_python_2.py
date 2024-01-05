@@ -23,7 +23,8 @@ def choose_method(select_request):
         cur.execute("SELECT id, first_name, last_name, email from сlient")
         rows = cur.fetchall()
         print(rows)
-        for row in rows:
+        change_client(conn, data_сlient, first_name, last_name, email);
+        '''for row in rows:
 
             if first_name and last_name and email:
                 change_client(conn, data_сlient, first_name, last_name, email);
@@ -40,9 +41,9 @@ def choose_method(select_request):
             elif first_name:
                 change_client(conn, data_сlient, first_name, row[2], row[3]);
             else:
-                change_client(conn, data_сlient, row[1], row[2], row[3]);
+                change_client(conn, data_сlient, row[1], row[2], row[3]);'''
 
-    elif int(select_request) == 3:
+    elif int(select_request) == 4:
         data_сlient = (input('Введите id клиента: '))
         data_id_tel = (input('Введите id номера телефона для его удаления: '))
         cur.execute("SELECT id, client_id, phone from telefone_сlient")
@@ -119,6 +120,7 @@ def add_client(conn, first_name, last_name, email, phones=None):
 
 
 def add_phone(conn, client_id, phone):
+
   cur.execute(
     'INSERT INTO telefone_сlient (client_id, phone) VALUES (%s, %s) RETURNING *', (client_id, phone)
   )
@@ -128,16 +130,95 @@ def add_phone(conn, client_id, phone):
 
 
 def change_client(conn, client_id, first_name=None, last_name=None, email=None, phones=None):
-    cur.execute("""
-            UPDATE сlient SET first_name=%s, last_name=%s, email=%s WHERE id=%s;
-            """, (first_name, last_name, email, client_id))
+        if first_name and last_name and email:
+            cur.execute("""
+                    UPDATE сlient SET first_name=%s, last_name=%s, email=%s WHERE id=%s;
+                    """, (first_name, last_name, email, client_id))
 
-    cur.execute("""
+            cur.execute("""
+                    SELECT * FROM сlient;
+                    """)
+
+            res = cur.fetchone()
+            return res
+        elif first_name and last_name:
+            cur.execute("""
+                    UPDATE сlient SET first_name=%s, last_name=%s WHERE id=%s;
+                    """, (first_name, last_name, client_id))
+
+            cur.execute("""
+                    SELECT * FROM сlient;
+                    """)
+
+            res = cur.fetchone()
+            return res
+        elif first_name and email:
+            cur.execute("""
+                    UPDATE сlient SET first_name=%s, email=%s WHERE id=%s;
+                    """, (first_name, email, client_id))
+
+            cur.execute("""
+                    SELECT * FROM сlient;
+                    """)
+
+            res = cur.fetchone()
+            return res
+        elif last_name:
+            cur.execute("""
+                    UPDATE сlient SET last_name=%s WHERE id=%s;
+                    """, (last_name, client_id))
+
+            cur.execute("""
+                    SELECT * FROM сlient;
+                    """)
+
+            res = cur.fetchone()
+            return res
+        elif email:
+            cur.execute("""
+                    UPDATE сlient SET email=%s WHERE id=%s;
+                    """, ( email, client_id))
+
+            cur.execute("""
+                    SELECT * FROM сlient;
+                    """)
+
+            res = cur.fetchone()
+            return res
+        elif last_name and email:
+            cur.execute("""
+                    UPDATE сlient SET last_name=%s, email=%s WHERE id=%s;
+                    """, (last_name, email, client_id))
+
+            cur.execute("""
+                    SELECT * FROM сlient;
+                    """)
+
+            res = cur.fetchone()
+            return res
+        elif first_name:
+            cur.execute("""
+                    UPDATE сlient SET first_name=%s WHERE id=%s;
+                    """, (first_name,  client_id))
+
+            cur.execute("""
+                    SELECT * FROM сlient;
+                    """)
+
+            res = cur.fetchone()
+            return res
+        else:
+
+            cur.execute("""
+            UPDATE сlient SET first_name=%s, last_name=%s, email=%s WHERE id=%s;
+            """, (client_id))
+
+            cur.execute("""
             SELECT * FROM сlient;
             """)
 
-    res = cur.fetchone()
-    return res
+            res = cur.fetchone()
+            return res
 
 
 def delete_phone(conn, client_id, phone):
@@ -159,20 +240,20 @@ def delete_client(conn, client_id):
           """)
 
 
-def find_client(conn, first_name=None, last_name=None, email=None, phone=None):
+def find_client(conn, first_name='%', last_name='%', email='%', phone='%'):
     cur.execute(
         '''SELECT c.client_id FROM сlient as c
            JOIN telefone_сlient as t on c.id = t.client_id;
-           WHERE id=%s;''',
+           WHERE id LIKE '%' first_name LIKE '%' last_name LIKE '%'  email  LIKE '%' phone LIKE '%';''',
         (first_name, last_name, email, phone)
     )
 
 
-
-with psycopg2.connect(database="netology_bd", user="postgres", password="netology") as conn:
-  rows = []
-  with conn.cursor() as cur:
-      select_request = (input('''Выберете число, чтобы реализовать следующие действия
+if __name__ == '__main__':
+    with psycopg2.connect(database="netology_bd", user="postgres", password="netology") as conn:
+        rows = []
+        with conn.cursor() as cur:
+            select_request = (input('''Выберете число, чтобы реализовать следующие действия
                                 (добавить нового клиента: 1;
                                  добавить телефон для существующего клиента: 2;
                                  изменить данные о клиенте: 3;
@@ -181,19 +262,19 @@ with psycopg2.connect(database="netology_bd", user="postgres", password="netolog
                                  найти клиента по его данным: имени, фамилии, email или телефону: 6): '''))
 
 
-      create_db(conn)
-      choose_method(select_request)
-      #del_table(conn)
+            create_db(conn)
+            choose_method(select_request)
+            #del_table(conn)
 
-      cur.execute("SELECT id, first_name, last_name, email from сlient")
-      rows = cur.fetchall()
+            cur.execute("SELECT id, first_name, last_name, email from сlient")
+            rows = cur.fetchall()
 
 
-      cur.execute("SELECT id, client_id, phone from telefone_сlient")
-      phones = cur.fetchall()
+            cur.execute("SELECT id, client_id, phone from telefone_сlient")
+            phones = cur.fetchall()
 
-      print(rows)
-      print(phones)
+            print(rows)
+            print(phones)
 
 print("Operation done successfully")
 
